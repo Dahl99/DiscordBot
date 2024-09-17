@@ -123,6 +123,7 @@ func (v *VoiceInstance) DCA(url string) {
 	if err != nil {
 		slog.Error("Failed to create an encoding session", "error", err)
 	}
+	defer encodeSession.Cleanup()
 
 	v.encoder = encodeSession
 	done := make(chan error)
@@ -134,8 +135,6 @@ func (v *VoiceInstance) DCA(url string) {
 				slog.Error("An error occured", "error", err)
 			}
 
-			// Clean up in case something happened and ffmpeg is still running
-			encodeSession.Cleanup()
 			return
 		}
 	}

@@ -82,6 +82,9 @@ To run the discord bot from root directory, execute the following command
 go run cmd/discordbot/main.go
 ```
 
+Note, method above needs `ffmpeg@4.x`, `stockfish` and `inkscape`.
+Newer versions of ffmpeg will not work with `DCA`, the discord audio player.
+
 Or to start the docker containers using docker compose V2
 
 ```sh

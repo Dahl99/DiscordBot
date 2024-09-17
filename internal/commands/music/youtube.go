@@ -12,6 +12,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	ytdl "github.com/kkdai/youtube/v2"
+
 	"google.golang.org/api/youtube/v3"
 )
 
@@ -27,11 +28,15 @@ func SearchVideoByName(name string) (*Video, error) {
 	ctx := context.Background()
 	youtubeService, err := youtube.NewService(ctx, option.WithAPIKey(config.GetYoutubeApiKey()))
 	if err != nil {
-		slog.Warn("failed to create YoutubeService", "error", err)
+		slog.Warn("failed to create YoutubeService (youtube-api-v3)", "error", err)
 		return nil, err
 	}
 
-	call := youtubeService.Search.List([]string{"id", "snippet"}).Q(name).MaxResults(1)
+	call := youtubeService.Search.
+		List([]string{"id", "snippet"}).
+		Q(name).
+		MaxResults(1)
+
 	res, err := call.Do()
 	if err != nil {
 		slog.Warn("failed to search YouTube for video", "error", err)
@@ -51,6 +56,8 @@ func SearchVideoByName(name string) (*Video, error) {
 		slog.Info("video not found on YouTube")
 		return nil, errors.New("video not found on YouTube")
 	}
+
+	slog.Info("found video on YouTube", "videoID", videoID, "videoTitle", videoTitle)
 
 	return &Video{
 		VideoID:    videoID,
@@ -72,7 +79,7 @@ func findVideoByVideoID(videoID string) (*Video, error) {
 	call := youtubeService.Videos.List([]string{"id", "snippet"}).Id(videoID).MaxResults(1)
 	res, err := call.Do()
 	if err != nil {
-		slog.Warn("failed to find video on YouTube", "error", err)
+		slog.Warn("failed to find video on YouTube (youtube-api-v3)", "error", err)
 		return nil, err
 	}
 
@@ -95,7 +102,6 @@ func findVideoByVideoID(videoID string) (*Video, error) {
 
 func getSongDataByVideo(video *Video, v *VoiceInstance, m *discordgo.MessageCreate) (songStruct PkgSong, err error) {
 	client := ytdl.Client{
-		Debug:       false,
 		HTTPClient:  nil,
 		MaxRoutines: 0,
 		ChunkSize:   0,
@@ -103,7 +109,7 @@ func getSongDataByVideo(video *Video, v *VoiceInstance, m *discordgo.MessageCrea
 
 	youTubeVideo, err := client.GetVideo("https://www.youtube.com/watch?v=" + video.VideoID)
 	if err != nil {
-		slog.Warn("failed to get video from YouTube", "error", err)
+		slog.Warn("failed to get video from YouTube (ytdl-Client)", "error", err)
 		return
 	}
 
